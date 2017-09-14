@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 
 
@@ -19,7 +20,7 @@ namespace batalha_naval
 
         public static bool CheckCord(string cord, int diff)
         {
-            if ((int)cord[0] < 97 || (int)cord[0] > 97+diff || (int)cord[2] < 48 || (int)cord[2] > 48+diff)
+            if ((int)cord[0] < 97 || (int)cord[0] > 97+(diff-2) || (int)cord[2] < 49 || (int)cord[2] > 48+(diff-1))
             {
                 System.Console.WriteLine("Dados Inválidos");
                 return false;
@@ -37,8 +38,10 @@ namespace batalha_naval
             return nome;
         }
 
-        public static void PlayGame(Player player1, Player player2)
+        public static string PlayGame(Player player1, Player player2)
         {
+            string result;
+            Console.Clear();
             Console.WriteLine(player1.GetName() + ',');
             player1.GetBoard().PlaceShips();
             Console.Clear();
@@ -49,15 +52,32 @@ namespace batalha_naval
 
             do
             {
-                Console.WriteLine(player2.GetName()+',');
-                player2.GetBoard().Fire();
-                player2.GetBoard().PrintBoard();
-
                 Console.WriteLine(player1.GetName()+',');
+                player2.GetBoard().Fire();
+                player2.GetBoard().PrintBoard(false);
+                Console.ReadKey();
+                Console.Clear();
+                Console.WriteLine(player2.GetName()+',');
                 player1.GetBoard().Fire();
-                player1.GetBoard().PrintBoard();
+                player1.GetBoard().PrintBoard(false);
+                Console.ReadKey();
+                Console.Clear();
                 
             } while (!player2.GetBoard().CheckLoss() || !player1.GetBoard().CheckLoss());
+            if(player1.GetBoard().CheckLoss())
+            {
+                Console.WriteLine(player2.GetName()+"ganhou");
+                Console.WriteLine("Pontuação: "+player1.GetBoard().GetTiros());
+                result = (player2.GetName()+":"+player1.GetBoard().GetTiros());
+                
+            }
+            else
+            {
+                Console.WriteLine(player1.GetName()+"ganhou");
+                Console.WriteLine("Pontuação: "+player2.GetBoard().GetTiros());
+                result = (player1.GetName() + ":" + player2.GetBoard().GetTiros());
+            }
+            return result;
         }
 
         public static int GetDiff()
@@ -81,7 +101,6 @@ namespace batalha_naval
                 default:
                     GetDiff();
                     break;
-                    
             }
             return diff;
         }
@@ -92,7 +111,16 @@ namespace batalha_naval
             int diff = GetDiff();
             Player player1 = new Player(GetName(),diff);
             Player player2 = new Player(GetName(),diff);
-            PlayGame(player1, player2);
+            using (StreamWriter Output = new StreamWriter(@".\hiscores.txt"))
+            {
+                Output.WriteLine(PlayGame(player1, player2));
+            }
+            using (StreamReader Input = new StreamReader(@".\hiscores.txt"))
+            {
+                string hiscores = Input.ReadToEnd();
+                Console.Write(hiscores);
+            }
+            
         }
     }
 }

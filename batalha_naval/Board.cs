@@ -15,8 +15,8 @@ namespace batalha_naval
 
         public Board(int diff)
         {
-           player_grid = FillBoard(diff);
-           this.diff = diff;
+            player_grid = FillBoard(diff);
+            this.diff = diff;
 
         }
 
@@ -40,12 +40,9 @@ namespace batalha_naval
                     if (player_grid[i, j] == '@')
                     {
                         loss = false;
+                        break;
                     }
                 }
-            }
-            if (loss == true)
-            {
-                Console.WriteLine("You Lose");
             }
             return loss;
         }
@@ -54,70 +51,89 @@ namespace batalha_naval
         {
             string cord;
             Console.WriteLine("Onde quer colocar os seus navios?");
+            PrintBoard(true);
             for (int i = 0; i < 5; i++)
             {
                 do
                 {
                     cord = Program.GetCord();
-                } while (!Program.CheckCord(cord,diff));
-                player_grid[(int)cord[0] - 96, (int)cord[2] - 48] = '@';
+                } while (!Program.CheckCord(cord, diff));
+                if (player_grid[(int)cord[2] - 48, (int)cord[0] - 96] == '@')
+                {
+                    Console.WriteLine("Já posicionou um navio nessa localização");
+                    Console.ReadKey();
+                    --i;
+                }
+                else
+                {
+                    player_grid[(int)cord[2] - 48, (int)cord[0] - 96] = '@';
+                }
+                Console.Clear();
+                PrintBoard(true);
+                Console.ReadKey();
             }
         }
 
         public void Fire()
         {
-            Console.WriteLine("Onde pretende disparar?");
-            string cord;
+            bool repeat = false;
             do
             {
-                cord = Program.GetCord();
-            } while (!Program.CheckCord(cord,diff));
-
-            int x = (int)cord[0] - 96;
-            int y = (int)cord[2] - 48;
-
-            if(player_grid[x,y] == '@')
-            {
-                player_grid[x, y] = 'x';
-                SetTiros(GetTiros() + 1);
-            }
-            else
-            {
-                if (player_grid[x, y] == 'x')
+                Console.WriteLine("Onde pretende disparar?");
+                string cord;
+                PrintBoard(false);
+                do
                 {
-                    Console.WriteLine("Já disparou aí");
-                    Fire();
+                    cord = Program.GetCord();
+                } while (!Program.CheckCord(cord, diff));
+                Console.Clear();
+
+                int y = (int)cord[0] - 96;
+                int x = (int)cord[2] - 48;
+
+                if (player_grid[x, y] == '@')
+                {
+                    player_grid[x, y] = 'x';
+                    SetTiros(GetTiros() + 1);
+                    repeat = false;
                 }
                 else
                 {
-                    player_grid[x, y] = 'a';
-                    SetTiros(GetTiros() + 1);
-                }
-                
-            }
-            
+                    if (player_grid[x, y] == 'x')
+                    {
+                        Console.WriteLine("Já disparou aí");
+                        repeat = true;
+                    }
+                    else
+                    {
+                        player_grid[x, y] = 'a';
+                        SetTiros(GetTiros() + 1);
+                        repeat = false;
+                    }
 
+                } 
+            } while (repeat);
             return;
         }
 
         public char[,] FillBoard(int diff)
         {
-            char[,] grid = new char[diff,diff];
+            char[,] grid = new char[diff, diff];
             for (int i = 0; i < grid.GetLength(1); ++i)
             {
-                grid[0,i] = (char)(Convert.ToInt32('a') + (i-1));
+                grid[0, i] = (char)(Convert.ToInt32('a') + (i - 1));
                 grid[i, 0] = (char)(Convert.ToInt32('0') + i);
             }
             return grid;
         }
 
-        public void PrintBoard()
+        public void PrintBoard(bool show)
         {
             for (int i = 0; i < player_grid.GetLength(0); i++)
             {
                 for (int j = 0; j < player_grid.GetLength(1); j++)
                 {
-                    if (player_grid[i, j] == '@')
+                    if (player_grid[i, j] == '@' && show == false)
                     {
                         Console.Write(' ');
                         Console.Write('|');
